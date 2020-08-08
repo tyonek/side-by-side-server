@@ -1,26 +1,35 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+const express = require('express')
+const morgan = require('morgan')
+const cors = require('cors')
+const helmet = require('helmet')
+const { NODE_ENV } = require('./config')
+const productsRouter = require('./products/products-router')
+const commentsRouter = require('./comments/comments-router')
+const authRouter = require('./auth/auth-router')
+const usersRouter = require('./users/users-router')
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const app = express()
 
-export default App;
+app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common', {
+  skip: () => NODE_ENV === 'test',
+}))
+app.use(cors())
+app.use(helmet())
+
+app.use('/api/products', productsRouter)
+app.use('/api/comments', commentsRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/users', usersRouter)
+
+app.use(function errorHandler(error, req, res, next) {
+  let response
+  if (NODE_ENV === 'production') {
+    response = { error: 'Server error' }
+  } else {
+    console.error(error)
+    response = { error: error.message, object: error }
+  }
+  res.status(500).json(response)
+})
+
+module.exports = app
