@@ -1,26 +1,25 @@
-const express = require('express')
-const path = require('path')
-const UsersService = require('./users-service')
-
-const usersRouter = express.Router()
-const jsonBodyParser = express.json()
+const express = require('express');
+const path = require('path');
+const UsersService = require('./users-service');
+const usersRouter = express.Router();
+const jsonBodyParser = express.json();
 
 usersRouter
   .post('/', jsonBodyParser, (req, res, next) => {
-    const { password, username, fullname,  } = req.body
+    const { password, username, fullname, } = req.body;
 
     for (const field of ['fullname', 'username', 'password'])
       if (!req.body[field])
         return res.status(400).json({
           error: `Missing '${field}' in request body`
-        })
+        });
 
     // TODO: check username doesn't start with spaces
 
-    const passwordError = UsersService.validatePassword(password)
+    const passwordError = UsersService.validatePassword(password);
 
     if (passwordError)
-      return res.status(400).json({ error: passwordError })
+      return res.status(400).json({ error: passwordError });
 
     UsersService.hasUserWithUserName(
       req.app.get('db'),
@@ -28,7 +27,7 @@ usersRouter
     )
       .then(hasUserWithUserName => {
         if (hasUserWithUserName)
-          return res.status(400).json({ error: `Username already taken` })
+          return res.status(400).json({ error: `Username already taken` });
 
         return UsersService.hashPassword(password)
           .then(hashedPassword => {
@@ -37,7 +36,7 @@ usersRouter
               password: hashedPassword,
               fullname,
               date_created: 'now()',
-            }
+            };
 
             return UsersService.insertUser(
               req.app.get('db'),
@@ -48,10 +47,10 @@ usersRouter
                   .status(201)
                   .location(path.posix.join(req.originalUrl, `/${user.id}`))
                   .json(UsersService.serializeUser(user))
-              })
-          })
+              });
+          });
       })
-      .catch(next)
-  })
+      .catch(next);
+  });
 
-module.exports = usersRouter
+module.exports = usersRouter;

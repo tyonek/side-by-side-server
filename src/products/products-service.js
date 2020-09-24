@@ -1,4 +1,4 @@
-const xss = require('xss')
+const xss = require('xss');
 
 const ProductsService = {
   getAllProducts(db) {
@@ -37,13 +37,13 @@ const ProductsService = {
         'product.author_id',
         'usr.id',
       )
-      .groupBy('product.id', 'usr.id')
+      .groupBy('product.id', 'usr.id');
   },
 
   getById(db, id) {
     return ProductsService.getAllProducts(db)
       .where('product.id', id)
-      .first()
+      .first();
   },
 
   getCommentsForProduct(db, product_id) {
@@ -74,11 +74,11 @@ const ProductsService = {
         'comm.user_id',
         'usr.id',
       )
-      .groupBy('comm.id', 'usr.id')
+      .groupBy('comm.id', 'usr.id');
   },
 
   serializeProduct(product) {
-    const { author } = product
+    const { author } = product;
     return {
       id: product.id,
       title: xss(product.title),
@@ -94,7 +94,7 @@ const ProductsService = {
         date_created: new Date(author.date_created),
         date_modified: new Date(author.date_modified) || null
       },
-    }
+    };
   },
 
   insertProduct(db, newProduct) {
@@ -122,8 +122,8 @@ const ProductsService = {
         date_created: new Date(user.date_created),
         date_modified: new Date(user.date_modified) || null
       },
-    }
+    };
   },
-}
+};
 
-module.exports = ProductsService
+module.exports = ProductsService;

@@ -1,5 +1,5 @@
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 function makeUsersArray() {
   return [
@@ -35,8 +35,8 @@ function makeUsersArray() {
       password: 'password',
       date_created: new Date('2029-01-22T16:28:32.615Z'),
     },
-  ]
-}
+  ];
+};
 
 function makeProductsArray(users) {
   return [
@@ -72,8 +72,8 @@ function makeProductsArray(users) {
       date_created: new Date('2029-01-22T16:28:32.615Z'),
       description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Natus consequuntur deserunt commodi, nobis qui inventore corrupti iusto aliquid debitis unde non.Adipisci, pariatur.Molestiae, libero esse hic adipisci autem neque ?',
     },
-  ]
-}
+  ];
+};
 
 function makeCommentsArray(users, products) {
   return [
@@ -127,15 +127,15 @@ function makeCommentsArray(users, products) {
       date_created: new Date('2029-01-22T16:28:32.615Z'),
     },
   ];
-}
+};
 
 function makeExpectedProduct(users, product, comments=[]) {
   const author = users
-    .find(user => user.id === product.author_id)
+    .find(user => user.id === product.author_id);
 
   const number_of_comments = comments
     .filter(comment => comment.product_id === product.id)
-    .length
+    .length;
 
   return {
     id: product.id,
@@ -152,15 +152,15 @@ function makeExpectedProduct(users, product, comments=[]) {
       date_created: author.date_created.toISOString(),
       date_modified: author.date_modified || null,
     },
-  }
-}
+  };
+};
 
 function makeExpectedProductComments(users, productId, comments) {
   const expectedComments = comments
-    .filter(comment => comment.product_id === productId)
+    .filter(comment => comment.product_id === productId);
 
   return expectedComments.map(comment => {
-    const commentUser = users.find(user => user.id === comment.user_id)
+    const commentUser = users.find(user => user.id === comment.user_id);
     return {
       id: comment.id,
       text: comment.text,
@@ -173,9 +173,9 @@ function makeExpectedProductComments(users, productId, comments) {
         date_created: commentUser.date_created.toISOString(),
         date_modified: commentUser.date_modified || null,
       }
-    }
-  })
-}
+    };
+  });
+};
 
 function makeMaliciousProduct(user) {
   const maliciousProduct = {
@@ -185,24 +185,24 @@ function makeMaliciousProduct(user) {
     title: 'Naughty naughty very naughty <script>alert("xss");</script>',
     author_id: user.id,
     description: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
-  }
+  };
   const expectedProduct = {
     ...makeExpectedProduct([user], maliciousProduct),
     title: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
     description: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
-  }
+  };
   return {
     maliciousProduct,
     expectedProduct,
-  }
-}
+  };
+};
 
 function makeProductsFixtures() {
   const testUsers = makeUsersArray()
   const testProducts = makeProductsArray(testUsers)
   const testComments = makeCommentsArray(testUsers, testProducts)
   return { testUsers, testProducts, testComments }
-}
+};
 
 function cleanTables(db) {
   return db.transaction(trx =>
@@ -223,14 +223,14 @@ function cleanTables(db) {
         trx.raw(`SELECT setval('sidebyside_comments_id_seq', 0)`),
       ])
     )
-  )
-}
+  );
+};
 
 function seedUsers(db, users) {
   const preppedUsers = users.map(user => ({
     ...user,
     password: bcrypt.hashSync(user.password, 1)
-  }))
+  }));
   return db.into('sidebyside_users').insert(preppedUsers)
     .then(() =>
       // update the auto sequence to stay in sync
@@ -238,29 +238,29 @@ function seedUsers(db, users) {
         `SELECT setval('sidebyside_users_id_seq', ?)`,
         [users[users.length - 1].id],
       )
-    )
-}
+    );
+};
 
 function seedProductsTables(db, users, products, comments=[]) {
   // use a transaction to group the queries and auto rollback on any failure
   return db.transaction(async trx => {
-    await seedUsers(trx, users)
-    await trx.into('sidebyside_products').insert(products)
+    await seedUsers(trx, users);
+    await trx.into('sidebyside_products').insert(products);
     // update the auto sequence to match the forced id values
     await trx.raw(
       `SELECT setval('sidebyside_products_id_seq', ?)`,
       [products[products.length - 1].id],
-    )
+    );
     // only insert comments if there are some, also update the sequence counter
     if (comments.length) {
       await trx.into('sidebyside_comments').insert(comments)
       await trx.raw(
         `SELECT setval('sidebyside_comments_id_seq', ?)`,
         [comments[comments.length - 1].id],
-      )
-    }
-  })
-}
+      );
+    };
+  });
+};
 
 function seedMaliciousProduct(db, user, product) {
   return seedUsers(db, [user])
@@ -268,16 +268,16 @@ function seedMaliciousProduct(db, user, product) {
       db
         .into('sidebyside_products')
         .insert([product])
-    )
-}
+    );
+};
 
 function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
   const token = jwt.sign({ user_id: user.id }, secret, {
     subject: user.username,
     algorithm: 'HS256',
-  })
-  return `Bearer ${token}`
-}
+  });
+  return `Bearer ${token}`;
+};
 
 module.exports = {
   makeUsersArray,
@@ -293,4 +293,4 @@ module.exports = {
   seedMaliciousProduct,
   makeAuthHeader,
   seedUsers,
-}
+};

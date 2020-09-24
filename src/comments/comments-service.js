@@ -1,4 +1,4 @@
-const xss = require('xss')
+const xss = require('xss');
 
 const CommentsService = {
   getById(db, id) {
@@ -30,7 +30,7 @@ const CommentsService = {
         'usr.id',
       )
       .where('comm.id', id)
-      .first()
+      .first();
   },
 
   insertComment(db, newComment) {
@@ -41,11 +41,11 @@ const CommentsService = {
       .then(([comment]) => comment)
       .then(comment =>
         CommentsService.getById(db, comment.id)
-      )
+      );
   },
 
   serializeComment(comment) {
-    const { user } = comment
+    const { user } = comment;
     return {
       id: comment.id,
       text: xss(comment.text),
@@ -58,8 +58,8 @@ const CommentsService = {
         date_created: new Date(user.date_created),
         date_modified: new Date(user.date_modified) || null
       },
-    }
+    };
   }
-}
+};
 
-module.exports = CommentsService
+module.exports = CommentsService;

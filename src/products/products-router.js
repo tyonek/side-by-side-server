@@ -1,29 +1,26 @@
-const express = require('express')
-const ProductsService = require('./products-service')
-const { requireAuth } = require('../middleware/jwt-auth')
-
-
-const productsRouter = express.Router()
-const jsonBodyParser = express.json()
-
+const express = require('express');
+const ProductsService = require('./products-service');
+const { requireAuth } = require('../middleware/jwt-auth');
+const productsRouter = express.Router();
+const jsonBodyParser = express.json();
 
 productsRouter
   .route('/')
   .get((req, res, next) => {
     ProductsService.getAllProducts(req.app.get('db'))
       .then(products => {
-        res.json(products.map(ProductsService.serializeProduct))
+        res.json(products.map(ProductsService.serializeProduct));
       })
-      .catch(next)
-  })
+      .catch(next);
+  });
 
 productsRouter
   .route('/:product_id')
   .all(requireAuth)
   .all(checkProductExists)
   .get((req, res) => {
-    res.json(ProductsService.serializeProduct(res.product))
-  })
+    res.json(ProductsService.serializeProduct(res.product));
+  });
 
 productsRouter.route('/:product_id/comments/')
   .all(requireAuth)
@@ -34,24 +31,24 @@ productsRouter.route('/:product_id/comments/')
       req.params.product_id
     )
       .then(comments => {
-        res.json(comments.map(ProductsService.serializeproductComment))
+        res.json(comments.map(ProductsService.serializeproductComment));
       })
-      .catch(next)
-  })
+      .catch(next);
+  });
 
   productsRouter
   .route('/')
   .post(requireAuth, jsonBodyParser, (req, res, next) => {
-    const { title, price, description, link } = req.body
-    const newProduct = { title, price, description,link }
+    const { title, price, description, link } = req.body;
+    const newProduct = { title, price, description,link };
 
     for (const [key, value] of Object.entries(newProduct))
       if (value == null)
         return res.status(400).json({
           error: `Missing '${key}' in request body`
-        })
+        });
 
-    newProduct.author_id = req.user.id
+    newProduct.author_id = req.user.id;
 
 
     ProductsService.insertProduct(
@@ -61,10 +58,10 @@ productsRouter.route('/:product_id/comments/')
       .then(product => {
         res
           .status(201)
-          .json(ProductsService.serializeProduct(product))
+          .json(ProductsService.serializeProduct(product));
       })
-      .catch(next)
-    })
+      .catch(next);
+    });
 
 /* async/await syntax for promises */
 async function checkProductExists(req, res, next) {
@@ -77,13 +74,13 @@ async function checkProductExists(req, res, next) {
     if (!product)
       return res.status(404).json({
         error: `product doesn't exist`
-      })
+      });
 
-    res.product = product
+    res.product = product;
     next()
   } catch (error) {
     next(error)
-  }
-}
+  };
+};
 
-module.exports = productsRouter
+module.exports = productsRouter;
